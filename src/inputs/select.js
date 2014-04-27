@@ -1,24 +1,3 @@
-/**
-Select (dropdown)
-
-@class select
-@extends list
-@final
-@example
-<a href="#" id="status" data-type="select" data-pk="1" data-url="/post" data-title="Select status"></a>
-<script>
-$(function(){
-    $('#status').editable({
-        value: 2,    
-        source: [
-              {value: 1, text: 'Active'},
-              {value: 2, text: 'Blocked'},
-              {value: 3, text: 'Deleted'}
-           ]
-    });
-});
-</script>
-**/
 (function ($) {
     "use strict";
     
@@ -33,29 +12,27 @@ $(function(){
             this.$input.empty();
 
             var fillItems = function($el, data) {
-                var attr;
+                var html = '<input type="hidden"> <div class="default text">Select a category</div> <i class="dropdown icon"></i> <div class="menu">';
                 if($.isArray(data)) {
                     for(var i=0; i<data.length; i++) {
-                        attr = {};
-                        if(data[i].children) {
-                            attr.label = data[i].text;
-                            $el.append(fillItems($('<optgroup>', attr), data[i].children)); 
-                        } else {
-                            attr.value = data[i].value;
-                            if(data[i].disabled) {
-                                attr.disabled = true;
-                            }
-                            $el.append($('<option>', attr).text(data[i].text)); 
-                        }
+                        var text = data[i].text;
+                        var value = data[i].value;
+                        var str = '<div class="item" data-value="'+value+'">'+text+'</div>';
+                        html += str;
                     }
                 }
+                html += '</div>';
+
+                $el.html(html);
+                $el.dropdown();
                 return $el;
             };        
 
             fillItems(this.$input, this.sourceData);
             
             this.setClass();
-            
+            this.$input.parent().removeClass("ui");
+            this.$input.parent().removeClass("input");
             //enter submit
             this.$input.on('keydown.editable', function (e) {
                 if (e.which === 13) {
@@ -63,11 +40,24 @@ $(function(){
                 }
             });            
         },
+        value2html: function(value, element) {
+            $(element).html(value);
+        },
+
+        html2value: function(html) {
+            return html;
+        },
+        input2value: function () {
+            return $('input', this.$input).val();
+        },
+        value2input: function(value) {
+            var val = $.fn.editableutils.itemsByValue(value, this.sourceData);
+            $('.default.text', this.$input).html(val[0].text);
+        },
        
         value2htmlFinal: function(value, element) {
             var text = '', 
                 items = $.fn.editableutils.itemsByValue(value, this.sourceData);
-                
             if(items.length) {
                 text = items[0].text;
             }
@@ -88,7 +78,7 @@ $(function(){
         @property tpl 
         @default <select></select>
         **/         
-        tpl:'<select></select>'
+        tpl:'<div class="ui compact selection dropdown"> </div>'
     });
 
     $.fn.editabletypes.select = Select;      

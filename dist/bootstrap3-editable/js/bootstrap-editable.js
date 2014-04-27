@@ -1,7 +1,7 @@
 /*! X-editable - v1.5.1 
 * In-place editing with Twitter Bootstrap, jQuery UI or pure jQuery
 * http://github.com/vitalets/x-editable
-* Copyright (c) 2013 Vitaliy Potapov; Licensed MIT */
+* Copyright (c) 2014 Vitaliy Potapov; Licensed MIT */
 /**
 Form with single input element, two buttons and two states: normal/loading.
 Applied as jQuery method to DIV tag (not to form tag!). This is because form can be in loading state when spinner shown.
@@ -614,9 +614,9 @@ Editableform is linked with one of input types, e.g. 'text', 'select' etc.
     Note: following params could redefined in engine: bootstrap or jqueryui:
     Classes 'control-group' and 'editable-error-block' must always present!
     */      
-    $.fn.editableform.template = '<form class="form-inline editableform">'+
+    $.fn.editableform.template = '<form class="form-inline editableform ui form">'+
     '<div class="control-group">' + 
-    '<div><div class="editable-input"></div><div class="editable-buttons"></div></div>'+
+    '<div><div class="editable-input ui small input"></div><div class="editable-buttons"></div></div>'+
     '<div class="editable-error-block"></div>' + 
     '</div>' + 
     '</form>';
@@ -3121,27 +3121,6 @@ $(function(){
 
 }(window.jQuery));
 
-/**
-Select (dropdown)
-
-@class select
-@extends list
-@final
-@example
-<a href="#" id="status" data-type="select" data-pk="1" data-url="/post" data-title="Select status"></a>
-<script>
-$(function(){
-    $('#status').editable({
-        value: 2,    
-        source: [
-              {value: 1, text: 'Active'},
-              {value: 2, text: 'Blocked'},
-              {value: 3, text: 'Deleted'}
-           ]
-    });
-});
-</script>
-**/
 (function ($) {
     "use strict";
     
@@ -3156,29 +3135,27 @@ $(function(){
             this.$input.empty();
 
             var fillItems = function($el, data) {
-                var attr;
+                var html = '<input type="hidden"> <div class="default text">Select a category</div> <i class="dropdown icon"></i> <div class="menu">';
                 if($.isArray(data)) {
                     for(var i=0; i<data.length; i++) {
-                        attr = {};
-                        if(data[i].children) {
-                            attr.label = data[i].text;
-                            $el.append(fillItems($('<optgroup>', attr), data[i].children)); 
-                        } else {
-                            attr.value = data[i].value;
-                            if(data[i].disabled) {
-                                attr.disabled = true;
-                            }
-                            $el.append($('<option>', attr).text(data[i].text)); 
-                        }
+                        var text = data[i].text;
+                        var value = data[i].value;
+                        var str = '<div class="item" data-value="'+value+'">'+text+'</div>';
+                        html += str;
                     }
                 }
+                html += '</div>';
+                
+                $el.html(html);
+                $el.dropdown();
                 return $el;
             };        
 
             fillItems(this.$input, this.sourceData);
             
             this.setClass();
-            
+            this.$input.parent().removeClass("ui");
+            this.$input.parent().removeClass("input");
             //enter submit
             this.$input.on('keydown.editable', function (e) {
                 if (e.which === 13) {
@@ -3186,11 +3163,24 @@ $(function(){
                 }
             });            
         },
+        value2html: function(value, element) {
+            $(element).html(value);
+        },
+
+        html2value: function(html) {
+            return html;
+        },
+        input2value: function () {
+            return $('input', this.$input).val();
+        },
+        value2input: function(value) {
+            var val = $.fn.editableutils.itemsByValue(value, this.sourceData);
+            $('.default.text', this.$input).html(val[0].text);
+        }, 
        
         value2htmlFinal: function(value, element) {
             var text = '', 
                 items = $.fn.editableutils.itemsByValue(value, this.sourceData);
-                
             if(items.length) {
                 text = items[0].text;
             }
@@ -3211,13 +3201,12 @@ $(function(){
         @property tpl 
         @default <select></select>
         **/         
-        tpl:'<select></select>'
+        tpl:'<div class="ui compact selection dropdown"> </div>'
     });
 
     $.fn.editabletypes.select = Select;      
 
 }(window.jQuery));
-
 /**
 List of checkboxes. 
 Internally value stored as javascript array of values.
